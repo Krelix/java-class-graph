@@ -42,21 +42,6 @@
             <artifactId>javaparser-core</artifactId>
             <version>${jparser.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.graphstream</groupId>
-            <artifactId>gs-core</artifactId>
-            <version>${graphstream.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graphstream</groupId>
-            <artifactId>gs-algo</artifactId>
-            <version>${graphstream.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graphstream</groupId>
-            <artifactId>gs-ui</artifactId>
-            <version>${graphstream.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

@@ -2,9 +2,6 @@ package com.otwtag.janalyze
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
-import org.graphstream.graph.implementations.SingleGraph
-import org.graphstream.graph.Node
-import org.graphstream.graph.Edge
 import java.io.File
 import java.io.FileInputStream
 
@@ -42,7 +39,6 @@ private fun getJavaSourceInDirRecurse(dir: File): Array<File> {
 class CodeBrowser(val filePath: String) {
     var parsedFiles = mutableListOf<CompilationUnit>()
     var edges = mutableMapOf<String, MutableList<String>>()
-    var graph = SingleGraph("test", false, true)
 
     fun parseFilesInPath() {
         val baseDir = File(filePath)
@@ -57,29 +53,6 @@ class CodeBrowser(val filePath: String) {
                 e.printStackTrace()
                 error("Error occurred when reading file ${file.name}")
             }
-        }
-    }
-
-    fun buildPackages() {
-        assert(!parsedFiles.isEmpty())
-        for (cu in parsedFiles) {
-            val packageName = cu.`package`.name.toString().trim()
-            cu.types.map { type ->
-                var currNode = "$packageName.${type.name.toString().trim()}"
-                var imports = mutableListOf<String>()
-                cu.imports.map { import -> if(!imports.contains(import.name.toString().trim())) imports.add(import.name.toString().trim())}
-                edges.put(currNode, imports)
-            }
-        }
-    }
-
-    fun buildGraph() {
-        for((key, value) in edges) {
-            var currNode = graph.addNode<Node>(key)
-            currNode.setAttribute("ui.label", key)
-            value.map{ s ->
-                println("creating edge for $key and $s")
-                graph.addEdge<Edge>("$key$s", key, s) }
         }
     }
 }
