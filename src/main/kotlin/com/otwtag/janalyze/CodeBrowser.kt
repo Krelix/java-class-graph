@@ -2,6 +2,7 @@ package com.otwtag.janalyze
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
+import org.apache.commons.lang.StringUtils
 import java.io.File
 import java.io.FileInputStream
 
@@ -53,6 +54,71 @@ class CodeBrowser(val filePath: String) {
                 e.printStackTrace()
                 error("Error occurred when reading file ${file.name}")
             }
+        }
+    }
+
+    /**
+     * Builds a Neo4j graph data creation
+     */
+    fun buildGraphString() {
+        var packages = mutableListOf<String>()
+        var classes = mutableListOf<String>()
+        val relations = mutableListOf<String>()
+        for (file in parsedFiles) {
+            // add package
+            val currentPackage = file.`package`.name.toStringWithoutComments()
+            if(!packages.contains(currentPackage)) {
+
+                packages.add(currentPackage)
+            }
+
+            // add imports
+            for (imp in file.imports) {
+                var addRelationship = false
+                val importName = imp.name.toStringWithoutComments()
+                val importPackage = if (importName.contains('.')) {
+                    importName.substring(0..(importName.lastIndexOf('.') - 1))
+                } else {
+                    importName
+                }
+                val importClass = if (importName.contains('.')) {
+                    importName.substring(importName.lastIndexOf('.') + 1)
+                } else {
+                    // case of package Name = class name...
+                    // differentiate with capitalization
+                    StringUtils.capitalize(importName)
+                }
+                if(!packages.contains(importPackage)) {
+
+                    packages.add(importPackage)
+                }
+                if(!classes.contains(importClass)) {
+
+                    classes.add(importClass)
+                    addRelationship = true
+                }
+                if(addRelationship) {
+                    relations.add("CREATE (${importPackage.replace(".","")})-[:CONTAINS]->($importClass)")
+                }
+            }
+
+            for (clazz in file.types) {
+                val className = clazz.nameExpr.toStringWithoutComments()
+                if(!classes.contains(className)) {
+                    classes.add(className)
+                    relations.add("CREATE ($currentPackage)-[:CONTAINS]->($className)")
+                }
+            }
+
+        }
+        for(s in packages) {
+            println("CREATE (${s.replace(".","")}: Package{name:'$s'})")
+        }
+        for(s in classes) {
+            println("CREATE (${s.replace(".", "")}: Class{name:'$s'})")
+        }
+        for(s in relations) {
+            println(s)
         }
     }
 }
