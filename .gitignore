@@ -3,3 +3,9 @@
 
 target
 build
+
+# output folder
+output
+
+# Fake java source files
+fake_source

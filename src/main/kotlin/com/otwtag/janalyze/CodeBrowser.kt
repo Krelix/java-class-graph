@@ -39,7 +39,9 @@ private fun getJavaSourceInDirRecurse(dir: File): Array<File> {
  */
 class CodeBrowser(val filePath: String) {
     var parsedFiles = mutableListOf<CompilationUnit>()
-    var edges = mutableMapOf<String, MutableList<String>>()
+    var packages = mutableListOf<String>()
+    var classes = mutableListOf<String>()
+    val relations = mutableListOf<String>()
 
     fun parseFilesInPath() {
         val baseDir = File(filePath)
@@ -61,9 +63,6 @@ class CodeBrowser(val filePath: String) {
      * Builds a Neo4j graph data creation
      */
     fun buildGraphString() {
-        var packages = mutableListOf<String>()
-        var classes = mutableListOf<String>()
-        val relations = mutableListOf<String>()
         for (file in parsedFiles) {
             // add package
             val currentPackage = file.`package`.name.toStringWithoutComments()
@@ -106,19 +105,9 @@ class CodeBrowser(val filePath: String) {
                 val className = clazz.nameExpr.toStringWithoutComments()
                 if(!classes.contains(className)) {
                     classes.add(className)
-                    relations.add("CREATE ($currentPackage)-[:CONTAINS]->($className)")
+                    relations.add("CREATE (${currentPackage.replace(".", "")})-[:CONTAINS]->($className)")
                 }
             }
-
-        }
-        for(s in packages) {
-            println("CREATE (${s.replace(".","")}: Package{name:'$s'})")
-        }
-        for(s in classes) {
-            println("CREATE (${s.replace(".", "")}: Class{name:'$s'})")
-        }
-        for(s in relations) {
-            println(s)
         }
     }
 }
